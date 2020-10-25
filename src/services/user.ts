@@ -3,6 +3,7 @@
  */
 import request from '@/utils/request'
 import qs from 'qs'
+import store from '@/store'
 
 interface User {
 	phone: string
@@ -19,5 +20,16 @@ export const login = (data: User) => {
     // 设置为application/x-www-form-urlencoded
     // 如果 data 是 FormData 对象，则content-type 是 mulitpart/form-data
     data: qs.stringify(data) // axiox 默认 application/json格式的数据
+  })
+}
+
+export const getUserInfo = () => {
+  console.log('------', store.state.user)
+  return request({
+    method: 'GET',
+    url: '/front/user/getInfo',
+    headers: {
+      Authorization: store.state.user.access_token
+    }
   })
 }

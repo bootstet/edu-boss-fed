@@ -105,9 +105,6 @@ const router = new VueRouter({
 // from: 从哪里来的陆游信息
 // next: 通行的标志
 router.beforeEach((to, from, next) => {
-  // ...
-  console.log('to', to)
-  console.log('form', from)
   // 路由守卫中一定要调用 next()
   next()
 

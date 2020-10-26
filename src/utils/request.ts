@@ -17,6 +17,16 @@ function redirectLogin () {
 	})
 }
 
+function refreshToken () {
+	return axios.create()({
+		method: 'POST',
+		url: '/front/user/refresh_token',
+		data: qs.stringify({
+			refreshtoken: store.state.user.refresh_token
+		})
+	})
+}
+
 // 请求拦截器
 // Add a request interceptor
 request.interceptors.request.use(function (config) {
@@ -35,7 +45,9 @@ request.interceptors.request.use(function (config) {
 })
 
 // 相应拦截器
-// Add a response interceptor
+// Add a response interceptor	/
+let isRefreshing = false	// 控制刷新token的状态
+let requests: any[] = [] // 存贮刷新 token 期间过来的401请求
 request.interceptors.response.use(function (response) {
 	// Any status code that lie within the range of 2xx cause this function to trigger
 	// Do something with response data
@@ -60,28 +72,37 @@ request.interceptors.response.use(function (response) {
 				redirectLogin()
 				return Promise.reject(error)
 			}
-			// 尝试获取新的 token
-			try {
-				const { data } = await axios.create()({
-					method: 'POST',
-					url: '/front/user/refresh_token',
-					data: qs.stringify({
-						refreshtoken: store.state.user.refresh_token
-					})
+			// 刷新 token
+			if (!isRefreshing) {
+				// 尝试获取新的 token
+				isRefreshing = true
+				return refreshToken().then(res => {
+					if (!res.data.success) {
+						throw new Error('刷新token')
+					}
+					store.commit('setUser', res.data.content)
+					// 把 requests 队列中的请求重新发出去
+					requests.forEach(cb => cb())
+					// 重置 requests 数组
+					requests = []
+					return request(error.config)
+				}).catch(err => {
+					console.log(err)
+					// 把当前用户状态清除
+					store.commit('setUser', null)
+					// 失败了 -> 跳转登陆页面获取新的 token
+					redirectLogin()
+					return Promise.reject(error)
+				}).finally(() => {
+					isRefreshing = false // 重置刷新状态
 				})
-				// 成功了 -> 把本地失败的请求重新发出去
-				console.log(error.config)
-				store.commit('setUser', data.content)
-				return request(error.config)
-				// 把成功刷新的token更新到容器中和本地中
-			} catch (err) {
-				// 把当前用户状态清除
-				store.commit('setUser', null)
-				// 失败了 -> 跳转登陆页面获取新的 token
-				redirectLogin()
-				return Promise.reject(error)
 			}
-			// 如果没有直接跳转登陆页
+			// 刷新状态下，把请求挂起放到 requests 数组中
+			return new Promise(resolve => {
+				requests.push(() => {
+					resolve(request(error.config))
+				})
+			})
 		} else if (status === 403) {
 			Message.error('没有权限、请联系管理员')
 		} else if (status === 404) {

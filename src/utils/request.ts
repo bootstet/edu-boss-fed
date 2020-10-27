@@ -110,11 +110,6 @@ request.interceptors.response.use(function (response) {
 		} else if (status >= 500) {
 			Message.error('服务端错误，请联系管理员')
 		}
-		// 400
-		// 401
-		// 403
-		// 404
-		// 500
 	} else if (error.request) {
 		// The request was made but no response was received
 		// `error.request` is an instance of XMLHttpRequest in the browser and an instance of

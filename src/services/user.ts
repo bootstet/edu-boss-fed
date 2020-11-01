@@ -31,3 +31,11 @@ export const getUserInfo = () => {
     // }
   })
 }
+
+export const getUserPages = (data: any) => {
+  return request({
+    method: 'POST',
+    url: '/boss/user/getUserPages',
+    data
+  })
+}

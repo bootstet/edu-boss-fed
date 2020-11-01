@@ -64,6 +64,11 @@ const routes: Array<RouteConfig> = [
         } // meta 默认是一个空对象
       },
       {
+        path: '/course/create',
+        name: 'courseCreate',
+        component: () => import(/* webpackChunkName: 'course-create' */'@/views/course/components/create.vue')
+      },
+      {
         path: '/user',
         name: 'user',
         component: () => import(/* webpackChunkName: 'user' */'@/views/user/index.vue'),
@@ -102,6 +107,15 @@ const routes: Array<RouteConfig> = [
         meta: {
           requiresAuth: true // 自定义数据
         } // meta 默认是一个空对象
+      },
+      {
+        path: '/role/:roleId/alloc-menu',
+        name: 'alloc-menu',
+        component: () => import(/* webpackChunkName: 'alloc-menu' */'@/views/role/components/alloc-menu.vue'),
+        meta: {
+          requiresAuth: true // 自定义数据
+        }, // meta 默认是一个空对象
+        props: true // 将路由路径参数映射到props中
       }
     ]
   },
